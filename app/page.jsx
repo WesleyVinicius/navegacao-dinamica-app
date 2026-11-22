@@ -25,6 +25,8 @@ export default function Home() {
   const [erro, setErro] = useState(null);
   const [distanciaTotal, setDistanciaTotal] = useState(0);
   const [leiturasCount, setLeiturasCount] = useState(0);
+  // Trilha do percurso: lista de [latitude, longitude] desenhada como linha no mapa
+  const [trilha, setTrilha] = useState([]);
 
   const watchIdRef = useRef(null);
   const ultimaPosicaoRef = useRef(null);
@@ -41,6 +43,7 @@ export default function Home() {
   function zerarOdometro() {
     setDistanciaTotal(0);
     setLeiturasCount(0);
+    setTrilha([]); // Novo percurso, nova trilha
     ultimaPosicaoRef.current = null; // Sem isso, a próxima leitura somaria o trecho anterior
   }
 
@@ -81,9 +84,12 @@ export default function Home() {
         // Odômetro: só soma quando o deslocamento supera o erro do GPS.
         // A referência só avança quando a distância é somada; assim, a oscilação
         // parado não acumula e os passos pequenos de uma caminhada não se perdem.
+        // A trilha usa o mesmo critério, então a linha no mapa fica limpa e
+        // coerente com a distância mostrada no odômetro.
         if (nova.precisao <= PRECISAO_MAXIMA_METROS) {
           if (!ultimaPosicaoRef.current) {
             ultimaPosicaoRef.current = nova;
+            setTrilha([[nova.latitude, nova.longitude]]); // Ponto inicial
           } else {
             const d = haversine(
               ultimaPosicaoRef.current.latitude,
@@ -93,6 +99,7 @@ export default function Home() {
             );
             if (d > Math.max(DESLOCAMENTO_MINIMO_METROS, 2 * nova.precisao)) {
               setDistanciaTotal((prev) => prev + d);
+              setTrilha((prev) => [...prev, [nova.latitude, nova.longitude]]);
               ultimaPosicaoRef.current = nova;
             }
           }
@@ -183,6 +190,7 @@ export default function Home() {
       <section className={styles.mapaArea}>
         <MapaInterativo
           posicao={posicao}
+          trilha={trilha}
           seguindoCamera={seguindoCamera}
           onAlternarSeguir={() => setSeguindoCamera((prev) => !prev)}
         />

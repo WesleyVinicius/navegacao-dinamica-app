@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -40,6 +40,7 @@ function RastreadorCamera({ posicao, seguindo }) {
 
 export default function MapaNavegacao({
   posicao,
+  trilha,
   seguindoCamera,
   onAlternarSeguir,
 }) {
@@ -131,6 +132,14 @@ export default function MapaNavegacao({
             attribution="&copy; OpenStreetMap contributors"
             maxZoom={19}
             updateWhenIdle={false}
+          />
+        )}
+
+        {/* Trilha do percurso: linha ligando os pontos já percorridos */}
+        {trilha && trilha.length > 1 && (
+          <Polyline
+            positions={trilha}
+            pathOptions={{ color: "#38bdf8", weight: 4, opacity: 0.9 }}
           />
         )}
 
